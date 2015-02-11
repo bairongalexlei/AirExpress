@@ -1,0 +1,203 @@
+package com.alexlei.airexpress;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+
+public class SearchActivity extends ActionBarActivity {
+    public final static String EXTRA_ORIGIN = "com.alexlei.airexpress.ORIGIN";
+    public final static String EXTRA_DESTINATION = "com.alexlei.airexpress.DESTINATION";
+    public final static String EXTRA_FLY_DATE = "com.alexlei.airexpress.FLY_DATE";
+    public final static String EXTRA_RESULT = "com.alexlei.airexpress.RESULT";
+
+    private Intent intent;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void getTickets(View view) {
+        // Check network availability
+        Context context = getApplicationContext();
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            Toast noNetworkPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
+            //noNetworkPopup.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
+            noNetworkPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+            noNetworkPopup.show();
+            return;
+        }
+
+        // Do something in response to button
+        intent = new Intent(this, DisplayTicketActivity.class);
+
+        EditText originText = (EditText) findViewById(R.id.edit_origin);
+        String origin = originText.getText().toString();
+        intent.putExtra(EXTRA_ORIGIN, origin);
+
+        EditText destinationText = (EditText) findViewById(R.id.edit_destination);
+        String destination = destinationText.getText().toString();
+        intent.putExtra(EXTRA_DESTINATION, destination);
+
+        EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
+        String flyDate = flyDateText.getText().toString();
+        intent.putExtra(EXTRA_FLY_DATE, flyDate);
+
+        //startActivity(intent);
+
+        String[] searchParams = new String[]{origin, destination, flyDate};
+        new DownloadTicketTask().execute(searchParams);
+    }
+
+    private class DownloadTicketTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... searchParams) {
+
+            // params comes from the execute() call: params[0] is the url.
+//            try {
+//                return downloadTicket(searchParams);
+//            } catch (IOException e) {
+//                IOException exc = e;
+//                return "Unable to retrieve web page. URL may be invalid.";
+//            }
+            return downloadTicket(searchParams);
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            try{
+                //textView.setText(result);
+                intent.putExtra(EXTRA_RESULT, result);
+                startActivity(intent);
+            }
+            catch (Exception e)
+            {
+                //textView.setText("Error occurs");
+                intent.putExtra(EXTRA_RESULT, "Error occurs");
+                startActivity(intent);
+            }
+//            textView.setText(result);
+        }
+
+        private String downloadTicket(String... searchParams) {//throws IOException {
+            String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=AIzaSyDBC6HfBNFRr6CqQo32PV7ZaUUbAZFRqeg";
+
+            try {
+                URL url = new URL(apiUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(10000 /* milliseconds */);
+                conn.setConnectTimeout(15000 /* milliseconds */);
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/json");
+                String jsonRequest = "{\n" +
+                        "  \"request\": {\n" +
+                        "    \"passengers\": {\n" +
+                        "      \"adultCount\": 1\n" +
+                        "    },\n" +
+                        "    \"slice\": [\n" +
+                        "      {\n" +
+                        "        \"origin\": \"NYC\",\n" +
+                        "        \"destination\": \"LGA\",\n" +
+                        "        \"date\": \"2015-02-14\"\n" +
+                        "      }\n" +
+                        "    ],\n" +
+                        "    \"solutions\": 6\n" +
+                        "  }\n" +
+                        "}";
+
+                //conn.connect();
+                OutputStream os = conn.getOutputStream();
+                os.write(jsonRequest.getBytes());
+                os.flush();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream())));
+
+                String output;
+                StringBuilder sb = new StringBuilder();
+                //System.out.println("Output from Server .... \n");
+                while ((output = br.readLine()) != null) {
+                    //System.out.println(output);
+                    sb.append(output);
+                    sb.append("\n");
+                }
+
+                conn.disconnect();
+
+                String result = sb.toString();
+                return result;
+            }
+            catch (MalformedURLException e) {
+                e.printStackTrace();
+                return "Api URL Error!";
+
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                return "IO Error!";
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+                return "Unknown Exception!";
+            }
+//            finally {
+////                if (is != null) {
+////                    is.close();
+////                }
+//                //test here
+//                return "Test sample result here";
+//            }
+        }
+    }
+}
