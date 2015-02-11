@@ -16,7 +16,6 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -80,17 +79,12 @@ public class SearchActivity extends ActionBarActivity {
 
         EditText originText = (EditText) findViewById(R.id.edit_origin);
         String origin = originText.getText().toString();
-        intent.putExtra(EXTRA_ORIGIN, origin);
 
         EditText destinationText = (EditText) findViewById(R.id.edit_destination);
         String destination = destinationText.getText().toString();
-        intent.putExtra(EXTRA_DESTINATION, destination);
 
         EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
         String flyDate = flyDateText.getText().toString();
-        intent.putExtra(EXTRA_FLY_DATE, flyDate);
-
-        //startActivity(intent);
 
         String[] searchParams = new String[]{origin, destination, flyDate};
         new DownloadTicketTask().execute(searchParams);
@@ -99,35 +93,29 @@ public class SearchActivity extends ActionBarActivity {
     private class DownloadTicketTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... searchParams) {
-
-            // params comes from the execute() call: params[0] is the url.
-//            try {
-//                return downloadTicket(searchParams);
-//            } catch (IOException e) {
-//                IOException exc = e;
-//                return "Unable to retrieve web page. URL may be invalid.";
-//            }
             return downloadTicket(searchParams);
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-            try{
-                //textView.setText(result);
+            try {
                 intent.putExtra(EXTRA_RESULT, result);
                 startActivity(intent);
             }
             catch (Exception e)
             {
-                //textView.setText("Error occurs");
-                intent.putExtra(EXTRA_RESULT, "Error occurs");
-                startActivity(intent);
+                Context context = getApplicationContext();
+                Toast errorPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
+                errorPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+                errorPopup.show();
             }
-//            textView.setText(result);
         }
 
         private String downloadTicket(String... searchParams) {//throws IOException {
             String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=AIzaSyDBC6HfBNFRr6CqQo32PV7ZaUUbAZFRqeg";
+            String searchOrigin = searchParams[0];
+            String searchDestination = searchParams[1];
+            String searchFlyDate = searchParams[2];
 
             try {
                 URL url = new URL(apiUrl);
@@ -146,9 +134,9 @@ public class SearchActivity extends ActionBarActivity {
                         "    },\n" +
                         "    \"slice\": [\n" +
                         "      {\n" +
-                        "        \"origin\": \"NYC\",\n" +
-                        "        \"destination\": \"LGA\",\n" +
-                        "        \"date\": \"2015-02-14\"\n" +
+                        "        \"origin\": \"" + searchOrigin + "\",\n" +
+                        "        \"destination\": \"" + searchDestination + "\",\n" +
+                        "        \"date\": \"" + searchFlyDate + "\"\n" +
                         "      }\n" +
                         "    ],\n" +
                         "    \"solutions\": 6\n" +
@@ -165,9 +153,7 @@ public class SearchActivity extends ActionBarActivity {
 
                 String output;
                 StringBuilder sb = new StringBuilder();
-                //System.out.println("Output from Server .... \n");
                 while ((output = br.readLine()) != null) {
-                    //System.out.println(output);
                     sb.append(output);
                     sb.append("\n");
                 }
@@ -191,13 +177,6 @@ public class SearchActivity extends ActionBarActivity {
                 System.out.println(e.getMessage());
                 return "Unknown Exception!";
             }
-//            finally {
-////                if (is != null) {
-////                    is.close();
-////                }
-//                //test here
-//                return "Test sample result here";
-//            }
         }
     }
 }
