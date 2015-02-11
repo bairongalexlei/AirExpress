@@ -159,7 +159,6 @@ public class SearchActivity extends ActionBarActivity {
                 }
 
                 conn.disconnect();
-
                 String result = sb.toString();
                 return result;
             }
