@@ -86,6 +86,7 @@ public class SearchActivity extends ActionBarActivity {
         EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
         String flyDate = flyDateText.getText().toString();
 
+
         String[] searchParams = new String[]{origin, destination, flyDate};
         new DownloadTicketTask().execute(searchParams);
     }
