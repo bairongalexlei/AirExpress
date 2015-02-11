@@ -10,5 +10,7 @@
     <string name="button_get_ticket">Get Ticket</string>
     <string name="title_activity_display_ticket">Found Ticket(s)</string>
     <string name="network_not_available">Device Not Connected to Network!</string>
+    <string name="no_ticket_result">No tickets found</string>
+    <string name="error_occur">Error! Please contact developer</string>
 
 </resources>

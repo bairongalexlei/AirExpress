@@ -99,13 +99,22 @@ public class SearchActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(String result) {
             try {
+                if (result.toLowerCase().contains("error"))
+                {
+                    Context context = getApplicationContext();
+                    Toast noResultPopup = Toast.makeText(context, R.string.no_ticket_result, Toast.LENGTH_SHORT);
+                    noResultPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+                    noResultPopup.show();
+                    return;
+                }
+
                 intent.putExtra(EXTRA_RESULT, result);
                 startActivity(intent);
             }
             catch (Exception e)
             {
                 Context context = getApplicationContext();
-                Toast errorPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
+                Toast errorPopup = Toast.makeText(context, R.string.error_occur, Toast.LENGTH_SHORT);
                 errorPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
                 errorPopup.show();
             }
