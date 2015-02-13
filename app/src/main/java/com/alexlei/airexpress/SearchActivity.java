@@ -26,22 +26,58 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 
-public class SearchActivity extends FragmentActivity {//ActionBarActivity {
+public class SearchActivity extends ActionBarActivity {
     public final static String EXTRA_ORIGIN = "com.alexlei.airexpress.ORIGIN";
     public final static String EXTRA_DESTINATION = "com.alexlei.airexpress.DESTINATION";
     public final static String EXTRA_FLY_DATE = "com.alexlei.airexpress.FLY_DATE";
     public final static String EXTRA_RESULT = "com.alexlei.airexpress.RESULT";
 
     private Intent intent;
+    private DatePickerDialog flyDatePickerDialog;
+    private EditText flyDateEditText;
+    private SimpleDateFormat dateFormatter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
+        dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        initializeUI();
+    }
+
+    private void initializeUI() {
+        flyDateEditText = (EditText)findViewById(R.id.edit_fly_date);
+        flyDateEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                {
+                    try {
+                        flyDatePickerDialog.show();
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        Calendar newCalendar = Calendar.getInstance();
+        flyDatePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                Calendar newDate = Calendar.getInstance();
+                newDate.set(year, monthOfYear, dayOfMonth);
+                flyDateEditText.setText(dateFormatter.format(newDate.getTime()));
+            }
+
+        },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
     }
 
     @Override
@@ -65,6 +101,17 @@ public class SearchActivity extends FragmentActivity {//ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+//    @Override
+//    public void onClick(View view) {
+//        if(view == flyDateEditText) {
+//            flyDatePickerDialog.show();
+//        }
+//        else {
+//
+//        }
+//
+//    }
 
     public void getTickets(View view) {
         // Check network availability
@@ -95,6 +142,15 @@ public class SearchActivity extends FragmentActivity {//ActionBarActivity {
 
         String[] searchParams = new String[]{origin, destination, flyDate};
         new DownloadTicketTask().execute(searchParams);
+    }
+
+    public void showFlyDateDatePicker(View view) {
+        try {
+            flyDatePickerDialog.show();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private class DownloadTicketTask extends AsyncTask<String, Void, String> {
