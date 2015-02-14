@@ -13,4 +13,13 @@
     <string name="no_ticket_result">No tickets found</string>
     <string name="error_occur">Error! Please contact developer</string>
 
+    <string-array name="list_of_city_names">
+        <item >Beijing</item>
+        <item >Toronto</item>
+    </string-array>
+
+    <string-array name="list_of_city_codes">
+        <item >PEK</item>
+        <item >YYZ</item>
+    </string-array>
 </resources>

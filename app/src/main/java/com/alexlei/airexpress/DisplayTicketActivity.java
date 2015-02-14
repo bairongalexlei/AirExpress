@@ -33,9 +33,6 @@ public class DisplayTicketActivity extends ActionBarActivity {
 
         //Get search parameters here
         Intent searchIntent = getIntent();
-        String origin = searchIntent.getStringExtra(SearchActivity.EXTRA_ORIGIN);
-        String destination = searchIntent.getStringExtra(SearchActivity.EXTRA_DESTINATION);
-        String flyDate = searchIntent.getStringExtra(SearchActivity.EXTRA_FLY_DATE);
         String result = searchIntent.getStringExtra(SearchActivity.EXTRA_RESULT);
 
         //String[] searchParams = new String[]{origin, destination, flyDate};

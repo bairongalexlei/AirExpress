@@ -14,6 +14,8 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -26,21 +28,22 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
 
 
-
 public class SearchActivity extends ActionBarActivity {
-    public final static String EXTRA_ORIGIN = "com.alexlei.airexpress.ORIGIN";
-    public final static String EXTRA_DESTINATION = "com.alexlei.airexpress.DESTINATION";
-    public final static String EXTRA_FLY_DATE = "com.alexlei.airexpress.FLY_DATE";
     public final static String EXTRA_RESULT = "com.alexlei.airexpress.RESULT";
 
     private Intent intent;
     private DatePickerDialog flyDatePickerDialog;
-    private EditText flyDateEditText;
+    private AutoCompleteTextView flyDateEditText;
     private SimpleDateFormat dateFormatter;
+    private AutoCompleteTextView autoCompleteTVOrigin;
+    private AutoCompleteTextView autoCompleteTVDestination;
+    private String[] cityCodes;
+    private String[] cityNames;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +55,28 @@ public class SearchActivity extends ActionBarActivity {
     }
 
     private void initializeUI() {
-        flyDateEditText = (EditText)findViewById(R.id.edit_fly_date);
+        cityCodes = getResources().getStringArray(R.array.list_of_city_codes);
+        cityNames = getResources().getStringArray(R.array.list_of_city_names);
+        ArrayAdapter adapterCityNames = new ArrayAdapter
+                (this,android.R.layout.simple_list_item_1, cityNames);
+
+        autoCompleteTVOrigin = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView_origin);
+        autoCompleteTVOrigin.setAdapter(adapterCityNames);
+        autoCompleteTVOrigin.setThreshold(1);
+
+        autoCompleteTVDestination =
+                (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView_destination);
+        autoCompleteTVDestination.setAdapter(adapterCityNames);
+        autoCompleteTVDestination.setThreshold(1);
+
+        flyDateEditText = (AutoCompleteTextView)findViewById(R.id.edit_fly_date);
         flyDateEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus)
-                {
+                if (hasFocus) {
                     try {
                         flyDatePickerDialog.show();
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -110,7 +125,6 @@ public class SearchActivity extends ActionBarActivity {
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
             Toast noNetworkPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
-            //noNetworkPopup.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
             noNetworkPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
             noNetworkPopup.show();
             return;
@@ -119,15 +133,15 @@ public class SearchActivity extends ActionBarActivity {
         // Do something in response to button
         intent = new Intent(this, DisplayTicketActivity.class);
 
-        EditText originText = (EditText) findViewById(R.id.edit_origin);
-        String origin = originText.getText().toString();
-
-        EditText destinationText = (EditText) findViewById(R.id.edit_destination);
-        String destination = destinationText.getText().toString();
+        String cityName = autoCompleteTVOrigin.getText().toString();
+        int cityNameIndex = Arrays.asList(cityNames).indexOf(cityName);
+        String origin = cityCodes[cityNameIndex];
+        cityName = autoCompleteTVDestination.getText().toString();
+        cityNameIndex = Arrays.asList(cityNames).indexOf(cityName);
+        String destination = cityCodes[cityNameIndex];
 
         EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
         String flyDate = flyDateText.getText().toString();
-
 
         String[] searchParams = new String[]{origin, destination, flyDate};
         new DownloadTicketTask().execute(searchParams);
