@@ -102,17 +102,6 @@ public class SearchActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-//    @Override
-//    public void onClick(View view) {
-//        if(view == flyDateEditText) {
-//            flyDatePickerDialog.show();
-//        }
-//        else {
-//
-//        }
-//
-//    }
-
     public void getTickets(View view) {
         // Check network availability
         Context context = getApplicationContext();
