@@ -10,6 +10,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,16 +22,23 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -42,8 +51,10 @@ public class SearchActivity extends ActionBarActivity {
     private SimpleDateFormat dateFormatter;
     private AutoCompleteTextView autoCompleteTVOrigin;
     private AutoCompleteTextView autoCompleteTVDestination;
-    private String[] cityCodes;
-    private String[] cityNames;
+    private ArrayList<String> originCityNamesFromWS;
+    private ArrayList<String> originCityCodesFromWS;
+    private ArrayList<String> destinationCityNamesFromWS;
+    private ArrayList<String> destinationCityCodesFromWS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,19 +66,138 @@ public class SearchActivity extends ActionBarActivity {
     }
 
     private void initializeUI() {
-        cityCodes = getResources().getStringArray(R.array.list_of_city_codes);
-        cityNames = getResources().getStringArray(R.array.list_of_city_names);
-        ArrayAdapter adapterCityNames = new ArrayAdapter
-                (this,android.R.layout.simple_list_item_1, cityNames);
-
+        originCityNamesFromWS = new ArrayList<String>();
+        originCityCodesFromWS = new ArrayList<String>();
+        final ArrayAdapter adapterOriginCityNames = new ArrayAdapter
+                (this,android.R.layout.simple_list_item_1, originCityNamesFromWS);
         autoCompleteTVOrigin = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView_origin);
-        autoCompleteTVOrigin.setAdapter(adapterCityNames);
-        autoCompleteTVOrigin.setThreshold(1);
+        autoCompleteTVOrigin.setAdapter(adapterOriginCityNames);
+        //autoCompleteTVOrigin.setThreshold(1);
+        autoCompleteTVOrigin.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!IsNetworkAvailable())
+                {
+                    return;
+                }
 
+                if (s.length() < 1)
+                    return;
+
+                if (originCityNamesFromWS.size() > 0)
+                {
+                    int cityNameIndex = originCityNamesFromWS.indexOf(s.toString());
+                    if (cityNameIndex >= 0)
+                        return;
+                }
+
+                new AsyncTask<String, Void, ArrayList<CityNameCode>>(){
+
+                    @Override
+                    protected ArrayList<CityNameCode> doInBackground(String... params) {
+                        ArrayList<CityNameCode> cityNameCodes = null;
+                        try {
+                            cityNameCodes = GetCityNameCodes(params[0]);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return cityNameCodes;
+                    }
+
+                    @Override
+                    protected void onPostExecute(ArrayList<CityNameCode> cityNameCodes) {
+                        adapterOriginCityNames.clear();
+                        if (cityNameCodes != null){
+                            originCityNamesFromWS.clear();
+                            originCityCodesFromWS.clear();
+                            for (int i = 0; i < cityNameCodes.size(); i++) {
+                                originCityNamesFromWS.add(cityNameCodes.get(i).CityName);
+                                originCityCodesFromWS.add(cityNameCodes.get(i).CityCode);
+                            }
+                            adapterOriginCityNames.addAll(originCityNamesFromWS);
+                        }
+                        adapterOriginCityNames.notifyDataSetChanged();
+                    }
+                }.execute(s.toString());
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        destinationCityNamesFromWS = new ArrayList<String>();
+        destinationCityCodesFromWS = new ArrayList<String>();
+        final ArrayAdapter adapterDestinationCityNames = new ArrayAdapter
+                (this,android.R.layout.simple_list_item_1, destinationCityNamesFromWS);
         autoCompleteTVDestination =
                 (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView_destination);
-        autoCompleteTVDestination.setAdapter(adapterCityNames);
-        autoCompleteTVDestination.setThreshold(1);
+        autoCompleteTVDestination.setAdapter(adapterDestinationCityNames);
+        //autoCompleteTVDestination.setThreshold(1);
+        autoCompleteTVDestination.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!IsNetworkAvailable())
+                {
+                    return;
+                }
+
+                if (s.length() < 1)
+                    return;
+
+                if (destinationCityNamesFromWS.size() > 0)
+                {
+                    int cityNameIndex = destinationCityNamesFromWS.indexOf(s.toString());
+                    if (cityNameIndex >= 0)
+                        return;
+                }
+
+                new AsyncTask<String, Void, ArrayList<CityNameCode>>(){
+
+                    @Override
+                    protected ArrayList<CityNameCode> doInBackground(String... params) {
+                        ArrayList<CityNameCode> cityNameCodes = null;
+                        try {
+                            cityNameCodes = GetCityNameCodes(params[0]);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return cityNameCodes;
+                    }
+
+                    @Override
+                    protected void onPostExecute(ArrayList<CityNameCode> cityNameCodes) {
+                        adapterDestinationCityNames.clear();
+                        if (cityNameCodes != null){
+                            destinationCityNamesFromWS = new ArrayList<String>();
+                            destinationCityCodesFromWS = new ArrayList<String>();
+                            for (int i = 0; i < cityNameCodes.size(); i++) {
+                                destinationCityNamesFromWS.add(cityNameCodes.get(i).CityName);
+                                destinationCityCodesFromWS.add(cityNameCodes.get(i).CityCode);
+                            }
+                            adapterDestinationCityNames.addAll(destinationCityNamesFromWS);
+                        }
+                        adapterDestinationCityNames.notifyDataSetChanged();
+                    }
+                }.execute(s.toString());
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         flyDateEditText = (AutoCompleteTextView)findViewById(R.id.edit_fly_date);
         flyDateEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -119,14 +249,7 @@ public class SearchActivity extends ActionBarActivity {
 
     public void getTickets(View view) {
         // Check network availability
-        Context context = getApplicationContext();
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnected()) {
-            Toast noNetworkPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
-            noNetworkPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-            noNetworkPopup.show();
+        if (!IsNetworkAvailable()){
             return;
         }
 
@@ -134,11 +257,11 @@ public class SearchActivity extends ActionBarActivity {
         intent = new Intent(this, DisplayTicketActivity.class);
 
         String cityName = autoCompleteTVOrigin.getText().toString();
-        int cityNameIndex = Arrays.asList(cityNames).indexOf(cityName);
-        String origin = cityCodes[cityNameIndex];
+        int cityNameIndex = originCityNamesFromWS.indexOf(cityName);
+        String origin = originCityCodesFromWS.get(cityNameIndex);
         cityName = autoCompleteTVDestination.getText().toString();
-        cityNameIndex = Arrays.asList(cityNames).indexOf(cityName);
-        String destination = cityCodes[cityNameIndex];
+        cityNameIndex = destinationCityNamesFromWS.indexOf(cityName);
+        String destination = destinationCityCodesFromWS.get(cityNameIndex);
 
         EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
         String flyDate = flyDateText.getText().toString();
@@ -153,6 +276,84 @@ public class SearchActivity extends ActionBarActivity {
         }
         catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    private boolean IsNetworkAvailable(){
+        // Check network availability
+        Context context = getApplicationContext();
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            Toast noNetworkPopup = Toast.makeText(context, R.string.network_not_available, Toast.LENGTH_SHORT);
+            noNetworkPopup.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+            noNetworkPopup.show();
+            return false;
+        }
+
+        return true;
+    }
+
+    public class CityNameCode {
+        public String CityName;
+        public String CityCode;
+    }
+
+    private ArrayList<CityNameCode> GetCityNameCodes(String searchKey)
+    {
+        ArrayList<CityNameCode> cityNameCodes = null;
+        try {
+            String charset = "UTF-8";
+            URL apiUrl = new URL("http://openflights.org/php/apsearch.php");
+            String searchCityName = searchKey;
+            String query = String.format("city=%s&country=ALL&dst=U&db=airports&iatafilter=true&action=SEARCH",
+                    URLEncoder.encode(searchCityName, charset));
+
+            HttpURLConnection connection = (HttpURLConnection)apiUrl.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setUseCaches (false);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+
+            OutputStream output = connection.getOutputStream();
+            output.write(query.getBytes(charset));
+
+            InputStream responseStream = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(responseStream));
+            String line;
+            StringBuffer responseStrBuffer = new StringBuffer();
+            while((line = rd.readLine()) != null) {
+                responseStrBuffer.append(line);
+                responseStrBuffer.append('\r');
+            }
+            rd.close();
+            connection.disconnect();
+
+            //read json string
+            String resultString = responseStrBuffer.toString();
+
+            JSONObject jResult = new JSONObject(resultString);
+            JSONArray foundAirPorts = jResult.getJSONArray("airports");
+            cityNameCodes = new ArrayList<CityNameCode>();
+
+            for (int i = 0; i < foundAirPorts.length(); i++){
+                JSONObject oneAirPort = foundAirPorts.getJSONObject(i);
+                String cityFullName = oneAirPort.getString("city") + ", " +
+                        oneAirPort.getString("name") + ", " +
+                        oneAirPort.getString("country");
+                String cityCode = oneAirPort.getString("iata");
+                CityNameCode oneCityNameCode = new CityNameCode();
+                oneCityNameCode.CityName = cityFullName;
+                oneCityNameCode.CityCode = cityCode;
+                cityNameCodes.add(oneCityNameCode);
+            }
+
+            return  cityNameCodes;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return cityNameCodes;
         }
     }
 

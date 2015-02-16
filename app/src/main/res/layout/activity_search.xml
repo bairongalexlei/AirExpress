@@ -11,13 +11,15 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:hint="@string/edit_origin"
-        android:ems="10" >
+        android:ems="10"
+        android:inputType="text">
         <requestFocus />
     </AutoCompleteTextView>
     <AutoCompleteTextView android:id="@+id/autoCompleteTextView_destination"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/edit_destination" />
+        android:hint="@string/edit_destination"
+        android:inputType="text"/>
     <AutoCompleteTextView android:id="@+id/edit_fly_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
