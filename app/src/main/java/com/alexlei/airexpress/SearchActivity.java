@@ -36,9 +36,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -55,6 +53,8 @@ public class SearchActivity extends ActionBarActivity {
     private ArrayList<String> originCityCodesFromWS;
     private ArrayList<String> destinationCityNamesFromWS;
     private ArrayList<String> destinationCityCodesFromWS;
+    private int selectedOriginCityIndex;
+    private int selectedDestinationCityIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +66,9 @@ public class SearchActivity extends ActionBarActivity {
     }
 
     private void initializeUI() {
+        selectedOriginCityIndex = -1;
+        selectedDestinationCityIndex = -1;
+
         originCityNamesFromWS = new ArrayList<String>();
         originCityCodesFromWS = new ArrayList<String>();
         final ArrayAdapter adapterOriginCityNames = new ArrayAdapter
@@ -87,10 +90,20 @@ public class SearchActivity extends ActionBarActivity {
                 if (originCityNamesFromWS.size() > 0)
                 {
                     int cityNameIndex = originCityNamesFromWS.indexOf(s.toString());
-                    if (cityNameIndex >= 0)
+                    if (cityNameIndex >= 0) {
+                        selectedOriginCityIndex = cityNameIndex;
                         return;
+                    }
+
+                    for (String originCityName: originCityNamesFromWS){
+                        if (originCityName.contains(s)) {
+                            selectedOriginCityIndex = -1;
+                            return;
+                        }
+                    }
                 }
 
+                selectedOriginCityIndex = -1;
                 new AsyncTask<String, Void, ArrayList<CityNameCode>>(){
 
                     @Override
@@ -154,10 +167,20 @@ public class SearchActivity extends ActionBarActivity {
                 if (destinationCityNamesFromWS.size() > 0)
                 {
                     int cityNameIndex = destinationCityNamesFromWS.indexOf(s.toString());
-                    if (cityNameIndex >= 0)
+                    if (cityNameIndex >= 0) {
+                        selectedDestinationCityIndex = cityNameIndex;
                         return;
+                    }
+
+                    for (String originCityName: destinationCityNamesFromWS){
+                        if (originCityName.contains(s)) {
+                            selectedDestinationCityIndex = -1;
+                            return;
+                        }
+                    }
                 }
 
+                selectedDestinationCityIndex = -1;
                 new AsyncTask<String, Void, ArrayList<CityNameCode>>(){
 
                     @Override
@@ -256,12 +279,22 @@ public class SearchActivity extends ActionBarActivity {
         // Do something in response to button
         intent = new Intent(this, DisplayTicketActivity.class);
 
-        String cityName = autoCompleteTVOrigin.getText().toString();
-        int cityNameIndex = originCityNamesFromWS.indexOf(cityName);
-        String origin = originCityCodesFromWS.get(cityNameIndex);
-        cityName = autoCompleteTVDestination.getText().toString();
-        cityNameIndex = destinationCityNamesFromWS.indexOf(cityName);
-        String destination = destinationCityCodesFromWS.get(cityNameIndex);
+        if (selectedOriginCityIndex < 0)
+        {
+            Toast invalidOrigin = Toast.makeText(this, R.string.invalid_origin, Toast.LENGTH_SHORT);
+            invalidOrigin.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+            invalidOrigin.show();
+            return;
+        }
+        String origin = originCityCodesFromWS.get(selectedOriginCityIndex);
+
+        if (selectedDestinationCityIndex < 0){
+            Toast invalidDestination = Toast.makeText(this, R.string.invalid_destination, Toast.LENGTH_SHORT);
+            invalidDestination.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+            invalidDestination.show();
+            return;
+        }
+        String destination = destinationCityCodesFromWS.get(selectedDestinationCityIndex);
 
         EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
         String flyDate = flyDateText.getText().toString();
@@ -388,7 +421,7 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         private String downloadTicket(String... searchParams) {//throws IOException {
-            String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=AIzaSyDBC6HfBNFRr6CqQo32PV7ZaUUbAZFRqeg";
+            String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search";
             String searchOrigin = searchParams[0];
             String searchDestination = searchParams[1];
             String searchFlyDate = searchParams[2];
