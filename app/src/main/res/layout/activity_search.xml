@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
@@ -19,16 +19,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/edit_destination"
-        android:inputType="text"/>
+        android:inputType="text"
+        android:layout_below="@id/autoCompleteTextView_origin"
+        />
     <AutoCompleteTextView android:id="@+id/edit_fly_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="top"
-        android:hint="@string/edit_fly_date" />
+        android:hint="@string/edit_fly_date"
+        android:layout_below="@id/autoCompleteTextView_destination"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:text="@string/button_get_ticket"
-        android:onClick="getTickets" />
-</LinearLayout>
+        android:onClick="getTickets"
+        android:layout_below="@id/edit_fly_date"
+        android:layout_alignParentRight="true"
+        />
+    <ProgressBar
+        android:id="@+id/pbHeaderProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible">
+    </ProgressBar>
+</RelativeLayout>

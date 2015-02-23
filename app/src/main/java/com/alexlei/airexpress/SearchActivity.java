@@ -20,6 +20,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -49,6 +51,7 @@ public class SearchActivity extends ActionBarActivity {
     private SimpleDateFormat dateFormatter;
     private AutoCompleteTextView autoCompleteTVOrigin;
     private AutoCompleteTextView autoCompleteTVDestination;
+    private ProgressBar loadingBar;
     private ArrayList<String> originCityNamesFromWS;
     private ArrayList<String> originCityCodesFromWS;
     private ArrayList<String> destinationCityNamesFromWS;
@@ -246,6 +249,8 @@ public class SearchActivity extends ActionBarActivity {
             }
 
         },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+
+        loadingBar = (ProgressBar)findViewById(R.id.pbHeaderProgress);
     }
 
     @Override
@@ -392,6 +397,12 @@ public class SearchActivity extends ActionBarActivity {
 
     private class DownloadTicketTask extends AsyncTask<String, Void, String> {
         @Override
+        protected void onPreExecute() {
+            loadingBar.setVisibility(View.VISIBLE);
+            super.onPreExecute();
+        }
+
+        @Override
         protected String doInBackground(String... searchParams) {
             return downloadTicket(searchParams);
         }
@@ -399,6 +410,7 @@ public class SearchActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(String result) {
             try {
+                loadingBar.setVisibility(View.GONE);
                 if (result.toLowerCase().contains("error"))
                 {
                     Context context = getApplicationContext();
@@ -421,7 +433,7 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         private String downloadTicket(String... searchParams) {//throws IOException {
-            String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search";
+            String apiUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=";
             String searchOrigin = searchParams[0];
             String searchDestination = searchParams[1];
             String searchFlyDate = searchParams[2];
