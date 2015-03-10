@@ -420,8 +420,14 @@ public class SearchActivity extends ActionBarActivity {
                     return;
                 }
 
+//                intent.putExtra(EXTRA_RESULT, result);
+//                startActivity(intent);
+
+                super.onPostExecute(result);
+                Intent intent = new Intent(SearchActivity.this, DisplayTicketActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(EXTRA_RESULT, result);
-                startActivity(intent);
+                getApplicationContext().startActivity(intent);
             }
             catch (Exception e)
             {
@@ -460,7 +466,7 @@ public class SearchActivity extends ActionBarActivity {
                         "        \"date\": \"" + searchFlyDate + "\"\n" +
                         "      }\n" +
                         "    ],\n" +
-                        "    \"solutions\": 6\n" +
+                        "    \"solutions\": 50\n" +
                         "  }\n" +
                         "}";
 

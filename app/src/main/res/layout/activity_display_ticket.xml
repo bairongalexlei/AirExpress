@@ -6,7 +6,16 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.alexlei.airexpress.DisplayTicketActivity">
 
+    <!--<TextView android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content" />-->
+
     <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/ticket_price" />
+
+    <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ticket_segments"
+        android:layout_below="@id/ticket_price" />
 
 </RelativeLayout>

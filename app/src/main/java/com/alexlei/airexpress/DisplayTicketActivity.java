@@ -1,24 +1,28 @@
 package com.alexlei.airexpress;
 
+import android.app.ListActivity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 
-public class DisplayTicketActivity extends ActionBarActivity {
+
+public class DisplayTicketActivity extends ListActivity { //ActionBarActivity {
     private TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_display_ticket);
+        //setContentView(R.layout.activity_display_ticket);
 
         //Get search parameters here
         Intent searchIntent = getIntent();
@@ -36,15 +40,21 @@ public class DisplayTicketActivity extends ActionBarActivity {
         // Set the text view as the activity layout
         //setContentView(textView);
 
-        result = parseTicket(result);
+//        result = parseTicket(result);
+//
+//        textView = new TextView(this);
+//        textView.setText(result);
+//        setContentView(textView);
 
-        textView = new TextView(this);
-        textView.setText(result);
-        setContentView(textView);
+        ArrayList<TicketResult> ticketResults = parseTicket(result);
+        TicketResultAdapter ta = new TicketResultAdapter(this, ticketResults);
+        setListAdapter(ta);
+        //ListView resultListView = (ListView)findViewById(R.layout.activity_display_ticket);
     }
 
-    private String parseTicket(String result) {
-        StringBuilder ticketResults = new StringBuilder();
+    private ArrayList<TicketResult> parseTicket(String result) {
+        ArrayList<TicketResult> ta = new ArrayList<TicketResult>();
+        //StringBuilder ticketResults = new StringBuilder();
         try {
             JSONObject jResult = new JSONObject(result);
 
@@ -52,14 +62,17 @@ public class DisplayTicketActivity extends ActionBarActivity {
             JSONArray tripOptions = jResult.getJSONArray("tripOption");
 
             for (int i = 0; i < tripOptions.length(); i++){
+                TicketResult oneTicketResult = new TicketResult();
                 JSONObject tripOption = tripOptions.getJSONObject(i);
                 String salePrice = tripOption.getString("saleTotal");
-                ticketResults.append("Solution#" + (i + 1) + " Sale Price: " + salePrice + "\n");
+                //ticketResults.append("Solution#" + (i + 1) + " Sale Price: " + salePrice + "\n");
+                oneTicketResult.TicketPrice = ("Solution#" + (i + 1) + " Sale Price: " + salePrice);
 
                 JSONArray slices = tripOption.getJSONArray("slice");
                 for (int k = 0; k < slices.length(); k++) {
                     JSONObject slice = (JSONObject) tripOption.getJSONArray("slice").get(k);
-                    ticketResults.append("         Slice 0" + "\n");
+                    //ticketResults.append("         Slice 0" + "\n");
+                    oneTicketResult.TicketSegments +=  ("         Slice 0" + "\n");
 
                     JSONArray segments = slice.getJSONArray("segment");
                     for (int j = 0; j < segments.length(); j++)
@@ -74,18 +87,22 @@ public class DisplayTicketActivity extends ActionBarActivity {
                         String departureTime = leg.getString("departureTime");
                         String arrivalTime = leg.getString("arrivalTime");
 
-                        ticketResults.append("             " + flightNumber + " " + origin + " " + departureTime + " " +
+//                        ticketResults.append("             " + flightNumber + " " + origin + " " + departureTime + " " +
+//                                destination + " " + arrivalTime + "\n");
+                        oneTicketResult.TicketSegments += ("             " + flightNumber + " " + origin + " " + departureTime + " " +
                                 destination + " " + arrivalTime + "\n");
                     }
                 }
 
-                ticketResults.append("\n");
+                //ticketResults.append("\n");
+                ta.add(oneTicketResult);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         finally {
-            return ticketResults.toString();
+            //return ticketResults.toString();
+            return ta;
         }
     }
 
