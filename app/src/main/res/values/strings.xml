@@ -14,6 +14,7 @@
     <string name="error_occur">Error! Please contact developer</string>
     <string name="invalid_origin">Invalid origin city input</string>
     <string name="invalid_destination">Invalid destination city input</string>
+    <string name="button_clear">Clear</string>
 
     <string-array name="list_of_city_names">
         <item >Beijing</item>

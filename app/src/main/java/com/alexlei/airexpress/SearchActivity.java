@@ -308,6 +308,25 @@ public class SearchActivity extends ActionBarActivity {
         new DownloadTicketTask().execute(searchParams);
     }
 
+    public void clearSearchCriteria(View view)
+    {
+        EditText flyDateText = (EditText) findViewById(R.id.edit_fly_date);
+        flyDateText.setText("");
+        flyDateText.clearFocus();
+
+        if (autoCompleteTVOrigin == null) {
+            autoCompleteTVOrigin = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView_origin);
+        }
+        autoCompleteTVOrigin.setText("");
+        autoCompleteTVOrigin.clearFocus();
+
+        if (autoCompleteTVDestination == null){
+            autoCompleteTVDestination = (AutoCompleteTextView)findViewById(R.id.autoCompleteTextView_destination);
+        }
+        autoCompleteTVDestination.setText("");
+        autoCompleteTVDestination.clearFocus();
+    }
+
     public void showFlyDateDatePicker(View view) {
         try {
             flyDatePickerDialog.show();

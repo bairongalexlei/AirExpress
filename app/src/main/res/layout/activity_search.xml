@@ -29,6 +29,17 @@
         android:hint="@string/edit_fly_date"
         android:layout_below="@id/autoCompleteTextView_destination"/>
     <Button
+        android:id="@+id/clear_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:text="@string/button_clear"
+        android:onClick="clearSearchCriteria"
+        android:layout_below="@id/edit_fly_date"
+        android:layout_toLeftOf="@id/search_button"
+        />
+    <Button
+        android:id="@+id/search_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
